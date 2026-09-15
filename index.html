@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>notes</title>
+  <style>
+    :root { --bg:#120e0c; --panel:#1c1612; --ink:#f3e6d4; --muted:#b7a08a; --gold:#d4b483; --line:#3a2c22; }
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;font-family:sans-serif;background:#120e0c;color:#f3e6d4}
+    .wrap{max-width:920px;margin:0 auto;padding:24px 16px 48px}
+    header{display:flex;justify-content:space-between;gap:12px;align-items:flex-end;margin-bottom:16px}
+    h1{margin:0;font-size:1.15rem;color:#d4b483}
+    .hud{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:.75rem;color:#b7a08a}
+    .hud b{color:#f3e6d4}
+    .stage{background:#1c1612;border:1px solid #3a2c22;border-radius:16px;overflow:hidden}
+    .body{padding:18px}
+    .meta{font-size:.78rem;color:#d4b483;margin-bottom:10px}
+    .text{line-height:1.75;min-height:6.5em;white-space:pre-wrap}
+    .choices{display:flex;flex-direction:column;gap:8px;margin-top:16px}
+    button{appearance:none;border:1px solid #3a2c22;background:#261c16;color:#f3e6d4;border-radius:10px;padding:12px 14px;text-align:left}
+  </style>
+</head>
+<body>
+<div id="gate" style="max-width:420px;margin:18vh auto;padding:24px;background:#1c1612;border:1px solid #3a2c22;border-radius:16px">
+  <h2 style="margin:0 0 8px;color:#d4b483">잠금</h2>
+  <p style="color:#b7a08a">비밀번호를 입력하세요.</p>
+  <input id="pw" type="password" placeholder="비밀번호" style="width:100%;padding:12px;border-radius:10px;border:1px solid #3a2c22;background:#261c16;color:#fff">
+  <button id="go" style="margin-top:10px;width:100%;padding:12px;border-radius:10px;border:0;background:#c45c4a;color:#fff">열기</button>
+  <p id="err" style="color:#c45c4a;display:none">비밀번호가 다릅니다.</p>
+</div>
+<script>
+(function(){
+  const wrap=document.querySelector('.wrap');
+  const gate=document.getElementById('gate');
+  if(wrap) wrap.style.display='none';
+  function open(){ if(gate) gate.remove(); if(wrap) wrap.style.display='block'; }
+  if(sessionStorage.getItem('ritual_ok_v1')==='1') open();
+  function tryOpen(){
+    if(document.getElementById('pw').value==='camp-night-19'){ sessionStorage.setItem('ritual_ok_v1','1'); open(); }
+    else document.getElementById('err').style.display='block';
+  }
+  document.getElementById('go').onclick=tryOpen;
+  document.getElementById('pw').addEventListener('keydown', e=>{ if(e.key==='Enter') tryOpen(); });
+})();
+</script>
+<div class="wrap">
+<header><div><h1>이세계 서사시 · 의례 샘플</h1><p style="color:#b7a08a">캠프 — 세리아의 천막</p></div>
+<div class="hud"><div>세리아 마력<br><b id="mana">32</b></div><div>관계<br><b id="bond">친밀</b></div><div>봉인<br><b id="seal">미약</b></div></div></header>
+<section class="stage"><div class="body"><div class="meta" id="meta"></div><div class="text" id="text"></div><div class="choices" id="choices"></div></div></section>
+</div>
+<script>
+const state={mana:32,bond:"친밀",seal:"미약"};
+const beats={
+start:{meta:"밤 · 천막",text:"장작 냄새와 천막 천의 먼지 냄새가 먼저 온다.\n세리아가 구두를 벗지 않은 채로 앩대 가장자리에 앎아 있다.\n\n\u201c바동… 오늘도, 해도 되지?\u201d",choices:[{label:"바닥에 뉝는다",next:"lie"},{label:"구두부터 닮겠다고 한다",next:"clean"},{label:"오늘은 짧게만",next:"short"}]},
+lie:{meta:"도어매트",text:"등이 나무 바닥에 닿는다.\n하이힐 굽이 배와 명치 사이에 무게를 싦는다.\n가죽과 스타킹 사이에서 행군 냄새가 내려온다.",choices:[{label:"무게를 받는다",next:"trample",fx:{mana:6}},{label:"구두코에 입을 맞춘다",next:"trample",fx:{mana:8}}]},
+clean:{meta:"관리",text:"세리아가 다리를 내민다. 에나멜과 스타킹, 발 냄새.",choices:[{label:"이제 받아 달라고 한다",next:"trample",fx:{mana:5}}]},
+short:{meta:"짧게",text:"굽이 가슴게만 머문다. 냄새는 여전하다.",choices:[{label:"조금 더",next:"trample",fx:{mana:3}},{label:"여기서 멈춘다",next:"end_short",fx:{mana:2}}]},
+trample:{meta:"트렘플",text:"무게가 는다.\n앞코가 명치를 누르고, 굽은 갈비 사이에 박힌다.\n발 냄새, 가죽, 땀. 세리아가 마력을 가져간다.",choices:[{label:"더 내려놓는다",next:"deeper",fx:{mana:10,seal:"금이 감"}},{label:"오늘은 여기까지",next:"end_main",fx:{mana:6}}]},
+deeper:{meta:"마력",text:"잔상. 왕관이 사시에 묶여 있다.\n세리아가 발을 늦춘다. \u201c괜찮아. 나는 여기 있어.\u201d",choices:[{label:"의례를 닫는다",next:"end_main",fx:{seal:"파편 1"}}]},
+end_main:{meta:"종료",text:"세리아가 구두를 거둔다.\n\u201c고마워. 내일 출항해도 되겠어.\u201d\n— 샘플 끝.",choices:[{label:"처음부터",next:"start",reset:true}]},
+end_short:{meta:"종료",text:"세리아가 발을 거둔다. — 샘플 끝.",choices:[{label:"처음부터",next:"start",reset:true}]}
+};
+function render(id){
+  const beat=beats[id];
+  document.getElementById('mana').textContent=String(state.mana);
+  document.getElementById('bond').textContent=state.bond;
+  document.getElementById('seal').textContent=state.seal;
+  document.getElementById('meta').textContent=beat.meta;
+  document.getElementById('text').textContent=beat.text;
+  const box=document.getElementById('choices'); box.innerHTML='';
+  beat.choices.forEach(c=>{
+    const b=document.createElement('button'); b.textContent=c.label;
+    b.onclick=()=>{
+      if(c.reset){state.mana=32;state.seal='미약';}
+      if(c.fx&&c.fx.mana) state.mana=Math.min(99,state.mana+c.fx.mana);
+      if(c.fx&&c.fx.seal) state.seal=c.fx.seal;
+      render(c.next);
+    };
+    box.appendChild(b);
+  });
+}
+render('start');
+</script>
+</body></html>
